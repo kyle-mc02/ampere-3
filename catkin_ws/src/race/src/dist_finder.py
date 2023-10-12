@@ -22,8 +22,42 @@ def getRange(data,angle):
     # angle: between -30 to 210 degrees, where 0 degrees is directly to the right, and 90 degrees is directly in front
     # Outputs length in meters to object with angle in lidar scan field of view
     # Make sure to take care of NaNs etc.
-    #TODO: implement
-	return 0.0
+	
+	# angle range pairs generation: 
+	#angles = [data.angle_min + (data.angle_increment) for i in range(len(data.ranges))]
+	#angle_range_pairs = zip(angles, data.ranges)
+
+	# Bound check the input angle
+	lidar_angle_bounds = (math.pi/6, 210 * (math.pi / 180))
+	if not (lidar_angle_bounds[0] < angle < lidar_angle_bounds[1]):
+		rospy.loginfo("requested LIDAR range outside of bounds: (%d, %d)"%lidar_angle_bounds)	
+		return 0.0
+
+	# Calculate the corresponding index(s) in data.ranges to input angle
+	# If it does not diivide evenly, then the range returned will be a combination of cieling and floor range
+	# Calculate proportion of cieling / floor range
+	idx = (1/data.angle_increment) * ( angle+(lidar_angle_bounds[0]) )
+	idx_low = math.floor(idx)
+	idx_high = math.ceil(idx)
+	p = idx - idx_low
+
+	# If the index into data.ranges divided evenly...
+	if idx_low == idx_high:
+		range = data.ranges(idx)
+
+		# Any data.range that is outside of the LIDAR min/max range is unreliable
+		if not (data.range_min < range < data.range_max) :
+			rospy.loginfo("LIDAR scan at angle: %d is not within lidar range"%angle)
+		return data.ranges(idx)
+	# If the index into data.ranges did not divide evenly
+	else:
+		range1 = data.ranges[idx_low]
+		range2 = data.ranges[idx_high]
+
+		# Any range that is outside of the LIDAR min/max range is unreliable
+		if not (data.range_min < range1 < data.range_max and data.range_min < range2 < data.range_max ):
+			rospy.loginfo("LIDAR scan(s) at angle: %d are not within lidar range"%angle)
+		return ((1-p)*range1) + (p*range2) 
 
 
 
