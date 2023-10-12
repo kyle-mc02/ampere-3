@@ -28,7 +28,7 @@ def getRange(data,angle):
 	#angle_range_pairs = zip(angles, data.ranges)
 
 	# Bound check the input angle
-	lidar_angle_bounds = (math.pi/6, 210 * (math.pi / 180))
+	lidar_angle_bounds = (-math.pi/6, 210 * (math.pi / 180))
 	if not (lidar_angle_bounds[0] < angle < lidar_angle_bounds[1]):
 		rospy.loginfo("requested LIDAR range outside of bounds: (%d, %d)"%lidar_angle_bounds)	
 		return 0.0
