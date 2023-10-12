@@ -31,7 +31,7 @@ def getRange(data,angle):
 	lidar_angle_bounds = (-math.pi/6, 210 * (math.pi / 180))
 	if not (lidar_angle_bounds[0] < angle < lidar_angle_bounds[1]):
 		rospy.loginfo("requested LIDAR range outside of bounds: (%d, %d)"%lidar_angle_bounds)	
-		return 0.0
+		return -1.0
 
 	# Calculate the corresponding index(s) in data.ranges to input angle
 	# If it does not diivide evenly, then the range returned will be a combination of cieling and floor range
