@@ -24,8 +24,8 @@ def getRange(data,angle):
     # Make sure to take care of NaNs etc.
 
 	min_angle = data.angle_min
-	real_angle = angle + 30 + min_angle
-	increment = data.angle_increment
+	real_angle = angle + 30 + math.degrees(min_angle)
+	increment = math.degrees(data.angle_increment)
 	index = int(real_angle/increment)
 	if math.isnan(data.ranges[index]):
 		return 0.0
