@@ -1,0 +1,14 @@
+<?xml version="2.0"?>
+<launch>
+    <group>
+        <include file="$(find name-of-core-racecar-package)/launch/(name-of-launchfile).launch">
+            <arg name="listen_offboard" value="False"/>
+        </include>
+
+        <include file="pid_controller.launch">
+        </include>
+
+        <include file="dist_finder.launch">
+        </include>
+    </group> 
+</launch> 
