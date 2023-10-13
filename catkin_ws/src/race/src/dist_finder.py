@@ -28,6 +28,7 @@ def getRange(data,angle):
 	#angle_range_pairs = zip(angles, data.ranges)
 
 	# Bound check the input angle
+	angle = math.radians(angle)
 	lidar_angle_bounds = (-math.pi/6, 210 * (math.pi / 180))
 	if not (lidar_angle_bounds[0] < angle < lidar_angle_bounds[1]):
 		rospy.loginfo("requested LIDAR range outside of bounds: (%d, %d)"%lidar_angle_bounds)	
@@ -71,8 +72,8 @@ def callback(data):
 
 	## Your code goes here to determine the projected error as per the alrorithm
 	# Compute Alpha, AB, and CD..and finally the error.
-	alpha = math.atan( (a * math.cos(theta) - b) /
-						(a * math.sin(theta)) )
+	alpha = math.atan( (a * math.cos(swing) - b) /
+						(a * math.sin(swing)) )
 	AB = b * math.cos(alpha)
 	CD = AB + (forward_projection * math.sin(alpha))
 	error = desired_distance - CD
