@@ -27,7 +27,8 @@ def getRange(data,angle):
 	real_angle = angle + 30 + math.degrees(min_angle)
 	increment = math.degrees(data.angle_increment)
 	index = int(real_angle/increment)
-	if math.isnan(data.ranges[index]):
+	dist = data.ranges[index]
+	if math.isnan(dist) or math.isinf(dist) or dist < data.range_min or dist > data.range_max:
 		return 0.0
 	else:
 		return data.ranges[index]
