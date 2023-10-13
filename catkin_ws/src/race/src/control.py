@@ -24,7 +24,7 @@ vel_input = 0.0	#TODO
 
 # Publisher for moving the car.
 # TODO: Use the coorect topic /car_x/offboard/command. The multiplexer listens to this topic
-command_pub = rospy.Publisher('/car_9/offboard/command', AckermannDrive, queue_size = 1)
+command_pub = rospy.Publisher('/car_3/offboard/command', AckermannDrive, queue_size = 1)
 
 def control(data):
 	global prev_error
@@ -32,7 +32,7 @@ def control(data):
 	global kp
 	global kd
 	global ki
-	global angle = 0.0
+	global angle
 	global errors
 
 	print("PID Control Node is Listening to error")
@@ -41,7 +41,8 @@ def control(data):
 
 	# 1. Scale the error
 	# 2. Apply the PID equation on error to compute steering
-	angle = (-kp * data.error) + (-ki * sum(errors)) +  (-kd * (data.error - prev_error))
+	angle = (-kp * data.pid_error) + (-ki * sum(errors)) +  (-kd * (data.pid_error - prev_error))
+	errors.append(data.pid_error)
 
 	# An empty AckermannDrive message is created. You will populate the steering_angle and the speed fields.
 	command = AckermannDrive()
