@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import math
 import rospy
+from collections import deque
 from race.msg import pid_input
 from ackermann_msgs.msg import AckermannDrive
 
@@ -10,7 +11,7 @@ kd = 0.0 #TODO
 ki = 0.0 #TODO
 servo_offset = 0.0	# zero correction offset in case servo is misaligned and has a bias in turning.
 prev_error = 0.0
-
+errors = deque(maxlen=200) # For how long in the past should error be accumulated?
 
 # This code can input desired velocity from the user.
 # velocity must be between [0,100] to move forward.
@@ -30,23 +31,33 @@ def control(data):
 	global vel_input
 	global kp
 	global kd
+	global ki
 	global angle = 0.0
+	global errors
 
 	print("PID Control Node is Listening to error")
 
 	## Your PID code goes here
-	#TODO: Use kp, ki & kd to implement a PID controller
 
 	# 1. Scale the error
 	# 2. Apply the PID equation on error to compute steering
+	angle = (-kp * data.error) + (-ki * sum(errors)) +  (-kd * (data.error - prev_error))
 
 	# An empty AckermannDrive message is created. You will populate the steering_angle and the speed fields.
 	command = AckermannDrive()
 
-	# TODO: Make sure the steering value is within bounds [-100,100]
+	# Make sure the steering value is within bounds [-100,100]
+	if angle < -100 :
+		angle = -100
+	elif angle > 100 :
+		angle = 100
 	command.steering_angle = angle
 
-	# TODO: Make sure the velocity is within bounds [0,100]
+	# Make sure the velocity is within bounds [0,100]
+	if vel_input < 0:
+		vel_input = 0
+	elif vel_input > 100:
+		vel_input = 100
 	command.speed = vel_input
 
 	# Move the car autonomously
@@ -59,6 +70,7 @@ if __name__ == '__main__':
 	global kd
 	global ki
 	global vel_input
+	global errors
 	kp = input("Enter Kp Value: ")
 	kd = input("Enter Kd Value: ")
 	ki = input("Enter Ki Value: ")
