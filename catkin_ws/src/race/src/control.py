@@ -62,7 +62,10 @@ def control(data):
 	command.speed = vel_input
 
 	# Move the car autonomously
+	print(command)
 	command_pub.publish(command)
+
+	prev_error = data.pid_error
 
 if __name__ == '__main__':
 
