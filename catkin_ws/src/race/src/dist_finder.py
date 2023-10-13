@@ -23,7 +23,13 @@ def getRange(data,angle):
     # Outputs length in meters to object with angle in lidar scan field of view
     # Make sure to take care of NaNs etc.
     #TODO: implement
-	return 0.0
+	real_angle = angle + 30
+	increment = data.angle_increment
+	index = int(real_angle/increment)
+	if math.isnan(data.ranges[index]):
+		return 0.0
+	else:
+		return data.ranges[index]
 
 
 
@@ -50,5 +56,5 @@ if __name__ == '__main__':
 	print("Hokuyo LIDAR node started")
 	rospy.init_node('dist_finder',anonymous = True)
 	# TODO: Make sure you are subscribing to the correct car_x/scan topic on your racecar
-	rospy.Subscriber("/car_X/scan",LaserScan,callback)
+	rospy.Subscriber("/car_3/scan",LaserScan,callback)
 	rospy.spin()
