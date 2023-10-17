@@ -6,8 +6,8 @@ from race.msg import pid_input
 from ackermann_msgs.msg import AckermannDrive
 
 # PID Control Params
-kp = 0.0 #TODO
-kd = 0.0 #TODO
+kp = 30.0 #TODO
+kd = 135.0 #TODO
 ki = 0.0 #TODO
 servo_offset = 0.0	# zero correction offset in case servo is misaligned and has a bias in turning.
 prev_error = 0.0
@@ -20,7 +20,7 @@ errors = deque(maxlen=200) # For how long in the past should error be accumulate
 # 25: Slow and steady
 # 35: Nice Autonomous Pace
 # > 40: Careful, what you do here. Only use this if your autonomous steering is very reliable.
-vel_input = 0.0	#TODO
+vel_input = 35	#TODO
 
 # Publisher for moving the car.
 # TODO: Use the coorect topic /car_x/offboard/command. The multiplexer listens to this topic
@@ -75,9 +75,9 @@ if __name__ == '__main__':
 	global ki
 	global vel_input
 	global errors
-	kp = input("Enter Kp Value: ")
-	kd = input("Enter Kd Value: ")
-	ki = input("Enter Ki Value: ")
+	#kp = input("Enter Kp Value: ")
+	#kd = input("Enter Kd Value: ")
+	#ki = input("Enter Ki Value: ")
 	vel_input = input("Enter desired velocity: ")
 	rospy.init_node('pid_controller', anonymous=True)
     # subscribe to the error topic
