@@ -23,47 +23,18 @@ def getRange(data,angle):
     # Outputs length in meters to object with angle in lidar scan field of view
     # Make sure to take care of NaNs etc.
 	
-	# angle range pairs generation: 
-	#angles = [data.angle_min + (data.angle_increment) for i in range(len(data.ranges))]
-	#angle_range_pairs = zip(angles, data.ranges)
-
-	# Bound check the input angle
-	angle = math.radians(angle)
-	lidar_angle_bounds = (-math.pi/6, 210 * (math.pi / 180))
-	if not (lidar_angle_bounds[0] < angle < lidar_angle_bounds[1]):
-		rospy.loginfo("requested LIDAR range outside of bounds: (%d, %d)"%lidar_angle_bounds)	
-		return -1.0
-
-	# Calculate the corresponding index(s) in data.ranges to input angle
-	# If it does not diivide evenly, then the range returned will be a combination of cieling and floor range
-	# Calculate proportion of cieling / floor range
-	idx = (1/data.angle_increment) * ( angle+(lidar_angle_bounds[0]) )
-	
-	return data.ranges(idx)
-	
-	#idx_low = math.floor(idx)
-	#idx_high = math.ceil(idx)
-	#p = idx - idx_low
-
-	# If the index into data.ranges divided evenly...
-	#if idx_low == idx_high:
-	#	range = data.ranges(idx)
-
-	#	# Any data.range that is outside of the LIDAR min/max range is unreliable
-	#	if not (data.range_min < range < data.range_max) :
-	#		rospy.loginfo("LIDAR scan at angle: %d is not within lidar range"%angle)
-	#	return data.ranges(idx)
-	## If the index into data.ranges did not divide evenly
-	#else:
-	#	range1 = data.ranges[idx_low]
-	#	range2 = data.ranges[idx_high]
-
-	#	# Any range that is outside of the LIDAR min/max range is unreliable
-	#	if not (data.range_min < range1 < data.range_max and data.range_min < range2 < data.range_max ):
-	#		rospy.loginfo("LIDAR scan(s) at angle: %d are not within lidar range"%angle)
-	#	return ((1-p)*range1) + (p*range2) 
-
-
+	real_angle = angle + 30
+	increment = math.degrees(data.angle_increment)
+	index = int(real_angle/increment)
+	dist = data.ranges[index]
+	if dist < data.range_min:
+		return data.range_min
+	elif dist > data.range_max:
+		return data.range_max
+	elif math.isnan(dist) or math.isinf(dist):
+		return 0	
+	else:
+		return data.ranges[index]
 
 def callback(data):
 	global forward_projection
