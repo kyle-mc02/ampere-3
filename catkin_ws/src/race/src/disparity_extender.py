@@ -16,11 +16,11 @@ extender_padding = 0.05 # How far beyond car_half_width the extender will projec
 
 def computeExtendedRanges(data):
 	# data: single message from topic /scan
-    # angle: between -30 to 210 degrees, where 0 degrees is directly to the right, and 90 degrees is directly in front
-    # Outputs length in meters to object with angle in lidar scan field of view
-    # Make sure to take care of NaNs etc.
+	# # angle: between -30 to 210 degrees, where 0 degrees is directly to the right, and 90 degrees is directly in front
+	# Outputs length in meters to object with angle in lidar scan field of view
+	# Make sure to take care of NaNs etc.
 
-    ranges = np.array(data.ranges)
+	ranges = np.array(data.ranges)
 	extended_ranges = ranges.copy()
 	disparities = np.diff(ranges)
 	
@@ -28,7 +28,7 @@ def computeExtendedRanges(data):
 		# If there is a gap defined after the right
         if disparities[i] > gap_threshold:
 			extension_length = ((car_half_width + extender_padding) / 
-					            ranges[i]*math.cos(data.angle_increment))
+								ranges[i]*math.cos(data.angle_increment))
 			extension_length = min(len(ranges), extension_length+i)
 			extended_ranges[i:(i+extension_length)] = ranges[i]
 		# If there is a gap defined after the left
@@ -41,8 +41,8 @@ def computeExtendedRanges(data):
     return extended_ranges
 
 def callback(data):	
-    scan = copy.deepcopy(data)
-    scan.ranges = computeExtendedRanges(data)
+	scan = copy.deepcopy(data)
+	scan.ranges = computeExtendedRanges(data)
 
 	pub.publish(scan)
 

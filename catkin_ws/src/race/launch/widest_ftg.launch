@@ -1,0 +1,5 @@
+<?xml version="2.0"?>
+<launch>
+    <node pkg="race" name="pid_controller_ftg" type="control_ftg.py" output="screen"/>
+    <node pkg="race" name="widest_heading_finder" type="widest_heading_finder.py" output="screen"/>
+</launch> 

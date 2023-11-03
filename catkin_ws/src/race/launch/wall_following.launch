@@ -1,14 +1,4 @@
 <?xml version="2.0"?>
 <launch>
-    <group>
-        <include file="$(find F1tenth_car_workspace)/move_base/launch/move_base.launch">
-            <arg name="listen_offboard" value="False"/>
-        </node>
-
-        <include file="pid_controller.launch">
-        </include>
-
-        <include file="dist_finder.launch">
-        </include>
-    </group> 
+    <node></node>
 </launch> 
