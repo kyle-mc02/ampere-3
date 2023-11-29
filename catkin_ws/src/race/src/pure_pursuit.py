@@ -75,7 +75,7 @@ def purepursuit_control_node(data):
     odom_y = data.pose.position.y
 
 
-    # TODO 1: The reference path is stored in the 'plan' array.
+    # The reference path is stored in the 'plan' array.
     # Your task is to find the base projection of the car on this reference path.
     # The base projection is defined as the closest point on the reference path to the car's current position.
     # Calculate the index and position of this base projection on the reference path.
@@ -96,30 +96,39 @@ def purepursuit_control_node(data):
                                                         data.pose.orientation.w))[2]
     
 
-    # TODO 2: You need to tune the value of the lookahead_distance
+    # TODO: Tune both of these values
     lookahead_distance = 1.0
     tolerance = 0.01
 
 
-    # TODO 3: Utilizing the base projection found in TODO 1, your next task is to identify the goal or target point for the car.
+    # Utilizing the base projection, your next task is to identify the goal or target point for the car.
     # This target point should be determined based on the path and the base projection you have already calculated.
     # The target point is a specific point on the reference path that the car should aim towards - lookahead distance ahead of the base projection on the reference path.
     # Calculate the position of this goal/target point along the path.
+
     target_point_ind = -1
-    # Your code here
     for i in range(base_proj_ind, len(plan)):
-        if dist(plan[i], plan[base_proj_ind]) - lookahead_distance <= tolerance:
+        if math.abs(dist(plan[i], plan[base_proj_ind]) - lookahead_distance) <= tolerance:
             target_point_ind = i
             break
 
 
-    # TODO 4: Implement the pure pursuit algorithm to compute the steering angle given the pose of the car, target point, and lookahead distance.
-    # Your code here
+    # Implement the pure pursuit algorithm to compute the steering angle given the pose of the car, target point, and lookahead distance.
 
+    if target_point_ind == -1:
+        return
+    target_point = plan[target_point_ind]
+    yt = math.abs(math.cos(heading)*(odom_y-target_point[1]) - math.sin(heading)*(odom_x-target_point[0]))
+    alpha = math.asin(yt/lookahead_distance)
+    wheel_angle = math.atan2((2*WHEELBASE_LEN*math.sin(alpha))/lookahead_distance)
 
-    # TODO 5: Ensure that the calculated steering angle is within the STEERING_RANGE and assign it to command.steering_angle
-    # Your code here    
-    command.steering_angle = 0.0
+    # Ensure that the calculated steering angle is within the STEERING_RANGE and assign it to command.steering_angle
+
+    if wheel_angle > STEERING_RANGE:
+        wheel_angle = STEERING_RANGE
+    elif wheel_angle < -STEERING_RANGE:
+        wheel_angle = -STEERING_RANGE
+    command.steering_angle = wheel_angle
 
     # TODO 6: Implement Dynamic Velocity Scaling instead of a constant speed
     command.speed = 20.0
