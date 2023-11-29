@@ -118,7 +118,7 @@ def purepursuit_control_node(data):
     if target_point_ind == -1:
         return
     target_point = plan[target_point_ind]
-    yt = math.abs(math.cos(heading)*(odom_y-target_point[1]) - math.sin(heading)*(odom_x-target_point[0]))
+    yt = math.cos(heading)*(odom_y-target_point[1]) - math.sin(heading)*(odom_x-target_point[0])
     alpha = math.asin(yt/lookahead_distance)
     wheel_angle = math.atan2((2*WHEELBASE_LEN*math.sin(alpha))/lookahead_distance)
 
