@@ -130,8 +130,13 @@ def purepursuit_control_node(data):
         wheel_angle = -STEERING_RANGE
     command.steering_angle = wheel_angle
 
-    # TODO 6: Implement Dynamic Velocity Scaling instead of a constant speed
-    command.speed = 20.0
+    # Implement Dynamic Velocity Scaling instead of a constant speed
+
+    # TODO: tune this
+    M_SPEED = 20
+    speed = M_SPEED/(1 + math.abs(wheel_angle))
+
+    command.speed = speed
     command_pub.publish(command)
 
     # Visualization code
