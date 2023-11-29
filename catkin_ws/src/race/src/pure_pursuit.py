@@ -120,10 +120,11 @@ def purepursuit_control_node(data):
     target_point = plan[target_point_ind]
     yt = math.cos(heading)*(odom_y-target_point[1]) - math.sin(heading)*(odom_x-target_point[0])
     alpha = math.asin(yt/lookahead_distance)
-    wheel_angle = math.atan2((2*WHEELBASE_LEN*math.sin(alpha))/lookahead_distance)
+    wheel_angle_rad = math.atan2((2*WHEELBASE_LEN*math.sin(alpha))/lookahead_distance)
 
     # Ensure that the calculated steering angle is within the STEERING_RANGE and assign it to command.steering_angle
 
+    wheel_angle = 2 * math.degrees(wheel_angle_rad)
     if wheel_angle > STEERING_RANGE:
         wheel_angle = STEERING_RANGE
     elif wheel_angle < -STEERING_RANGE:
@@ -133,8 +134,8 @@ def purepursuit_control_node(data):
     # Implement Dynamic Velocity Scaling instead of a constant speed
 
     # TODO: tune this
-    M_SPEED = 20
-    speed = M_SPEED/(1 + math.abs(wheel_angle))
+    MAX_SPEED = 20
+    speed = MAX_SPEED/(1 + math.abs(wheel_angle_rad))
 
     command.speed = speed
     command_pub.publish(command)
