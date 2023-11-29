@@ -98,7 +98,7 @@ def purepursuit_control_node(data):
 
     # TODO: Tune both of these values
     lookahead_distance = 1.0
-    tolerance = 0.01
+    tolerance = 0.005
 
 
     # Utilizing the base projection, your next task is to identify the goal or target point for the car.
@@ -124,6 +124,7 @@ def purepursuit_control_node(data):
 
     # Ensure that the calculated steering angle is within the STEERING_RANGE and assign it to command.steering_angle
 
+    # might need some tuning
     wheel_angle = 2 * math.degrees(wheel_angle_rad)
     if wheel_angle > STEERING_RANGE:
         wheel_angle = STEERING_RANGE
