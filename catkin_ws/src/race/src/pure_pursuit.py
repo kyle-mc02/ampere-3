@@ -18,6 +18,7 @@ path_resolution     = []
 frame_id            = 'map'
 car_name            = 'car_3'
 trajectory_name     = 'race_line'
+last_bpi = 0
 
 # Publishers for sending driving commands and visualizing the control polygon
 command_pub         = rospy.Publisher('/{}/offboard/command'.format(car_name), AckermannDrive, queue_size = 1)
@@ -81,16 +82,19 @@ def purepursuit_control_node(data):
     # Calculate the index and position of this base projection on the reference path.
     
     base_proj_ind = 0
-    min_dist = 6
+    min_dist = last_dist = 6
 
-    #TODO: optimize this
-    for i in range(len(plan)):
-        d = dist((odom_x,odom_y), plan[i])
+    for i in range(last_bpi, len(plan) + last_bpi):
+        d = dist((odom_x,odom_y), plan[i%len(plan)])
         if d < min_dist:
             base_proj_ind = i
             min_dist = d
+        # TODO: might need to tune this value
+        elif d > last_dist and d - last_dist > .005:
+            break
+        last_dist = d
     pose_x, pose_y = plan[base_proj_ind]
-    
+    last_bpi = base_proj_ind
     # Calculate heading angle of the car (in radians)
     heading = tf.transformations.euler_from_quaternion((data.pose.orientation.x,
                                                         data.pose.orientation.y,
@@ -98,7 +102,7 @@ def purepursuit_control_node(data):
                                                         data.pose.orientation.w))[2]
     
 
-    # TODO: Tune both of these values
+    # TODO: Tune this value
     lookahead_distance = 1.0
 
 
@@ -109,11 +113,11 @@ def purepursuit_control_node(data):
 
     target_point_ind = -1
     cumm_dist = 0
-    for i in range(base_proj_ind, len(plan)-1):
+    for i in range(base_proj_ind, len(plan)-1 + base_proj_ind):
         if cumm_dist >= lookahead_distance:
             target_point_ind = i-1
             break
-        cumm_dist += path_resolution[i]
+        cumm_dist += path_resolution[i%len(path_resolution)]
 
 
     # Implement the pure pursuit algorithm to compute the steering angle given the pose of the car, target point, and lookahead distance.
