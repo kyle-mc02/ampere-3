@@ -106,7 +106,6 @@ def purepursuit_control_node(data):
     # The target point is a specific point on the reference path that the car should aim towards - lookahead distance ahead of the base projection on the reference path.
     # Calculate the position of this goal/target point along the path.
 
-    #TODO: fix this to use the base proj and distance along race line
     target_point_ind = -1
     cumm_dist = 0
     for i in range(base_proj_ind + 1, len(plan)):
