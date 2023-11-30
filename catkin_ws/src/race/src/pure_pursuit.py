@@ -85,10 +85,11 @@ def purepursuit_control_node(data):
 
     #TODO: optimize this
     for i in range(len(plan)):
-        if path_resolution[i] < min_dist:
+        d = dist((odom_x,odom_y), plan[i])
+        if d < min_dist:
             base_proj_ind = i
-            min_dist = path_resolution[i]
-
+            min_dist = d
+    pose_x, pose_y = plan[base_proj_ind]
     
     # Calculate heading angle of the car (in radians)
     heading = tf.transformations.euler_from_quaternion((data.pose.orientation.x,
@@ -108,11 +109,11 @@ def purepursuit_control_node(data):
 
     target_point_ind = -1
     cumm_dist = 0
-    for i in range(base_proj_ind + 1, len(plan)):
+    for i in range(base_proj_ind, len(plan)-1):
         if cumm_dist >= lookahead_distance:
             target_point_ind = i-1
             break
-        cumm_dist += dist(plan[i-1], plan[i])
+        cumm_dist += path_resolution[i]
 
 
     # Implement the pure pursuit algorithm to compute the steering angle given the pose of the car, target point, and lookahead distance.
@@ -120,6 +121,7 @@ def purepursuit_control_node(data):
     if target_point_ind == -1:
         return
     target_point = plan[target_point_ind]
+    target_x, target_y = target_point
     yt = math.cos(heading)*(odom_y-target_point[1]) - math.sin(heading)*(odom_x-target_point[0])
     alpha = math.asin(yt/lookahead_distance)
     wheel_angle_rad = math.atan2((2*WHEELBASE_LEN*math.sin(alpha))/lookahead_distance)
@@ -148,13 +150,6 @@ def purepursuit_control_node(data):
     # - odom_x, odom_y: Current position of the car
     # - pose_x, pose_y: Position of the base projection on the reference path
     # - target_x, target_y: Position of the goal/target point
-
-    # These are set to zero only so that the template code builds. 
-    pose_x=0    
-    pose_y=0
-    target_x=0
-    target_y=0
-
 
     base_link    = Point32()
     nearest_pose = Point32()
