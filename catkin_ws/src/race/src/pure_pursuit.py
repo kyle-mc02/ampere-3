@@ -83,6 +83,7 @@ def purepursuit_control_node(data):
     base_proj_ind = 0
     min_dist = 6
 
+    #TODO: optimize this
     for i in range(len(plan)):
         if path_resolution[i] < min_dist:
             base_proj_ind = i
@@ -98,7 +99,6 @@ def purepursuit_control_node(data):
 
     # TODO: Tune both of these values
     lookahead_distance = 1.0
-    tolerance = 0.005
 
 
     # Utilizing the base projection, your next task is to identify the goal or target point for the car.
@@ -106,11 +106,14 @@ def purepursuit_control_node(data):
     # The target point is a specific point on the reference path that the car should aim towards - lookahead distance ahead of the base projection on the reference path.
     # Calculate the position of this goal/target point along the path.
 
+    #TODO: fix this to use the base proj and distance along race line
     target_point_ind = -1
-    for i in range(base_proj_ind, len(plan)):
-        if math.abs(dist(plan[i], plan[base_proj_ind]) - lookahead_distance) <= tolerance:
-            target_point_ind = i
+    cumm_dist = 0
+    for i in range(base_proj_ind + 1, len(plan)):
+        if cumm_dist >= lookahead_distance:
+            target_point_ind = i-1
             break
+        cumm_dist += dist(plan[i-1], plan[i])
 
 
     # Implement the pure pursuit algorithm to compute the steering angle given the pose of the car, target point, and lookahead distance.
