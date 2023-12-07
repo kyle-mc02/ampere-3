@@ -26,9 +26,14 @@ polygon_pub         = rospy.Publisher('/{}/purepursuit_control/visualize'.format
 # Global variables for waypoint sequence and current polygon
 global wp_seq
 global curr_polygon
+global extended_scan
 
 wp_seq          = 0
 control_polygon = PolygonStamped()
+
+def get_extended_ranges(data):
+    global extended_scan
+    
 
 def construct_path():
     # Function to construct the path from a CSV file
@@ -45,9 +50,9 @@ def construct_path():
             plan[index][point] = float(plan[index][point])
 
     for index in range(1, len(plan)):
-         dx = plan[index][0] - plan[index-1][0]
-         dy = plan[index][1] - plan[index-1][1]
-         path_resolution.append(math.sqrt(dx*dx + dy*dy))
+        dx = plan[index][0] - plan[index-1][0]
+        dy = plan[index][1] - plan[index-1][1]
+        path_resolution.append(math.sqrt(dx*dx + dy*dy))
 
 
 def dist(a, b):
