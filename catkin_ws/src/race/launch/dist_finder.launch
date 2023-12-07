@@ -1,0 +1,4 @@
+<?xml version="2.0"?>
+<launch>
+    <node pkg="race" name="dist_finder" type="dist_finder.py" output="screen"/>
+</launch> 
