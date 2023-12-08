@@ -10,7 +10,6 @@ from ackermann_msgs.msg import AckermannDrive
 from geometry_msgs.msg import PolygonStamped
 from geometry_msgs.msg import Point32
 from geometry_msgs.msg import PoseStamped
-import numpy as np
 import tf
 
 # Global variables for storing the path, path resolution, frame ID, and car details
@@ -18,7 +17,7 @@ plan                = []
 path_resolution     = []
 frame_id            = 'map'
 car_name            = 'car_3'
-trajectory_name     = 'raceline_2' # str(sys.argv[1])
+trajectory_name     = 'race_line'
 last_bpi = 0
 
 # Publishers for sending driving commands and visualizing the control polygon
@@ -28,29 +27,14 @@ polygon_pub         = rospy.Publisher('/{}/purepursuit_control/visualize'.format
 # Global variables for waypoint sequence and current polygon
 global wp_seq
 global curr_polygon
-global extended_ranges
-
-# TODO: Set the distance between points in LIDAR scan and path which is picked up as an obstacle on the path...
-INTERSECTION_THRESHOLD = 0.1
 
 wp_seq          = 0
 control_polygon = PolygonStamped()
-extended_ranges = np.array()
-
-def get_extended_ranges(data):
-    global extended_ranges
-    
-    ranges = np.where(data.min_range <= data.ranges <= data.max_range, data.ranges, np.NAN)
-    angles = data.min_angle + (data.angle_increment * np.arange(len(ranges)))
-    xc = np.sin(angles)
-    yc = np.cos(angles)
-    
-    extended_ranges = np.append(xc*ranges, yc*ranges, axis=1)
 
 def construct_path():
     # Function to construct the path from a CSV file
     # TODO: Modify this path to match the folder where the csv file containing the path is located.
-    file_path = os.path.expanduser('~/depend_ws/src/f1tenth_purepursuit/path/{}.csv'.format(trajectory_name))
+    file_path = os.path.expanduser('/home/maxwell/catkin_ws/src/f1tenth_purepursuit/path/{}.csv'.format(trajectory_name))
     with open(file_path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter = ',')
         for waypoint in csv_reader:
@@ -86,11 +70,11 @@ def purepursuit_control_node(data):
 
     global wp_seq
     global curr_polygon
-    global extended_ranges
 
     # Obtain the current position of the race car from the inferred_pose message
     odom_x = data.pose.position.x
     odom_y = data.pose.position.y
+
 
     # The reference path is stored in the 'plan' array.
     # Your task is to find the base projection of the car on this reference path.
@@ -99,37 +83,18 @@ def purepursuit_control_node(data):
     
     base_proj_ind = 0
     min_dist = last_dist = 6
-    # global last_bpi
+
     for i in range(last_bpi, len(plan) + last_bpi):
         d = dist((odom_x,odom_y), plan[i%len(plan)])
         if d < min_dist:
-            base_proj_ind = i%len(plan)
+            base_proj_ind = i
             min_dist = d
-        # # TODO: might need to tune this value
-        # elif d > last_dist and d - last_dist > .005:
-        #     break
-        # last_dist = d
-
-    # Calculate the distance between the extended_ranges and all points in the current path plan...
-    x2 = np.sum(plan**2, axis=1)  # shape of (m)
-    y2 = np.sum(extended_ranges**2, axis=1)  # shape of (n)
-    xy = np.matmul(plan, extended_ranges.T)
-    x2 = x2.reshape(-1, 1)
-    dists = np.sqrt(x2 - 2 * xy + y2)
-
-    argmin = np.unravel_index(np.argmin(dists), dists.shape)
-    if dists[argmin] < INTERSECTION_THRESHOLD:
-        # IF THIS POINT IS REACHED, THE CURRENT PLAN INTERSECTS
-        # WITH EXTENDED_RANGES AND WE KNOW THAT THERE IS AN OBSTACLE 
-        # ON THE GOAL PATH THAT WE WANT TO AVOID 
-        #
-        # TODO: NEED TO USE EITHER FTG OR SELECT AN NEW PATH ....
-        #
-        pass
-
-    pose_x = plan[base_proj_ind][0]
-    pose_y = plan[base_proj_ind][1]
-    # last_bpi = base_proj_ind
+        # TODO: might need to tune this value
+        elif d > last_dist and d - last_dist > .005:
+            break
+        last_dist = d
+    pose_x, pose_y = plan[base_proj_ind]
+    last_bpi = base_proj_ind
     # Calculate heading angle of the car (in radians)
     heading = tf.transformations.euler_from_quaternion((data.pose.orientation.x,
                                                         data.pose.orientation.y,
@@ -138,7 +103,7 @@ def purepursuit_control_node(data):
     
 
     # TODO: Tune this value
-    lookahead_distance = 2.5
+    lookahead_distance = 1.0
 
 
     # Utilizing the base projection, your next task is to identify the goal or target point for the car.
@@ -150,11 +115,9 @@ def purepursuit_control_node(data):
     cumm_dist = 0
     for i in range(base_proj_ind, len(plan)-1 + base_proj_ind):
         if cumm_dist >= lookahead_distance:
-            target_point_ind = i%len(plan)
+            target_point_ind = i-1
             break
         cumm_dist += path_resolution[i%len(path_resolution)]
-
-    print(cumm_dist)
 
 
     # Implement the pure pursuit algorithm to compute the steering angle given the pose of the car, target point, and lookahead distance.
@@ -162,22 +125,15 @@ def purepursuit_control_node(data):
     if target_point_ind == -1:
         return
     target_point = plan[target_point_ind]
-    target_x = target_point[0]
-    target_y = target_point[1]
+    target_x, target_y = target_point
     yt = math.cos(heading)*(odom_y-target_point[1]) - math.sin(heading)*(odom_x-target_point[0])
-    print('yt: {}'.format(yt))
-    sin_r = yt/lookahead_distance
-    if sin_r > 1:
-        sin_r = 1
-    elif sin_r < -1:
-        sin_r = -1
-    alpha = math.asin(sin_r)
-    wheel_angle_rad = -math.atan2((2*WHEELBASE_LEN*math.sin(alpha)), lookahead_distance)
+    alpha = math.asin(yt/lookahead_distance)
+    wheel_angle_rad = math.atan2((2*WHEELBASE_LEN*math.sin(alpha))/lookahead_distance)
 
     # Ensure that the calculated steering angle is within the STEERING_RANGE and assign it to command.steering_angle
 
     # might need some tuning
-    wheel_angle = 6 * math.degrees(wheel_angle_rad)
+    wheel_angle = 2 * math.degrees(wheel_angle_rad)
     if wheel_angle > STEERING_RANGE:
         wheel_angle = STEERING_RANGE
     elif wheel_angle < -STEERING_RANGE:
@@ -187,13 +143,8 @@ def purepursuit_control_node(data):
     # Implement Dynamic Velocity Scaling instead of a constant speed
 
     # TODO: tune this
-    MAX_SPEED = 70
-    # speed = 10 * (MAX_SPEED/(1 + abs(wheel_angle))) + 5
-    speed = 5 * MAX_SPEED / (1 + .1 * abs(wheel_angle))
-    if speed > MAX_SPEED:
-        speed = MAX_SPEED
-    
-    print(speed)
+    MAX_SPEED = 20
+    speed = MAX_SPEED/(1 + math.abs(wheel_angle_rad))
 
     command.speed = speed
     command_pub.publish(command)
