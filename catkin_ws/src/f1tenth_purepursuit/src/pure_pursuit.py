@@ -31,6 +31,8 @@ global curr_polygon
 wp_seq          = 0
 control_polygon = PolygonStamped()
 
+
+
 def construct_path():
     # Function to construct the path from a CSV file
     # TODO: Modify this path to match the folder where the csv file containing the path is located.
