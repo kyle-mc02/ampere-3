@@ -5,7 +5,6 @@ import math
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
 from std_msgs.msg import Int32
-from race.msg import pid_input
 
 from visualization_msgs.msg import Marker
 
@@ -14,16 +13,11 @@ from tf.transformations import quaternion_from_euler
 sphere_marker_pub = rospy.Publisher("/sphere_marker", Marker, queue_size = 2)
 arrow_marker_pub = rospy.Publisher("/arrow_marker", Marker, queue_size = 2)
 prev_range = 0.0
-heading = 0.0
 
-def got_pid(data):
-    global heading
-    heading = data.pid_error
 
 def callback(data):
+    
     global prev_range
-    global heading
-
     # pick out the middle range value (at index 540 - just an example)
     center = data.ranges[540]
 
@@ -86,8 +80,8 @@ def callback(data):
     arrow_marker.header.stamp = rospy.Time.now()
     arrow_marker.id = 1
 
-    arrow_marker.scale.x = math.cos((heading)*data.angle_increment)
-    arrow_marker.scale.y = math.sin((heading)*data.angle_increment)
+    arrow_marker.scale.x = data.ranges[540]
+    arrow_marker.scale.y = 0.1
     arrow_marker.scale.z = 0.1
 
     # Set the color
@@ -102,5 +96,4 @@ def callback(data):
 if __name__=='__main__':
     rospy.init_node("rviz_test", anonymous=False)   
     sub = rospy.Subscriber("/car_3/scan",LaserScan, callback)
-    sub2 = rospy.Subscriber("error", pid_input, got_pid)
     rospy.spin()

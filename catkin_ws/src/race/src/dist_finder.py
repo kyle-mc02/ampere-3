@@ -22,23 +22,42 @@ def getRange(data,angle):
     # angle: between -30 to 210 degrees, where 0 degrees is directly to the right, and 90 degrees is directly in front
     # Outputs length in meters to object with angle in lidar scan field of view
     # Make sure to take care of NaNs etc.
-    #TODO: implement
-	return 0.0
+
+	min_angle = data.angle_min
+	real_angle = angle + 30
+	increment = math.degrees(data.angle_increment)
+	index = int(real_angle/increment)
+	dist = data.ranges[index]
+	if dist < data.range_min:
+		return data.range_min
+	elif dist > data.range_max or math.isinf(dist):
+		return data.range_max
+	elif math.isnan(dist):
+		return 0
+	else:
+		return data.ranges[index]
 
 
 
 def callback(data):
 	global forward_projection
 
-	theta = 50 # you need to try different values for theta
+	theta = 80 # you need to try different values for theta
 	a = getRange(data,theta) # obtain the ray distance for theta
+	if a == 0:
+		return
 	b = getRange(data,0)	# obtain the ray distance for 0 degrees (i.e. directly to the right of the car)
 	swing = math.radians(theta)
 
 	## Your code goes here to determine the projected error as per the alrorithm
 	# Compute Alpha, AB, and CD..and finally the error.
 	# TODO: implement
-
+	alpha = math.atan((a*math.cos(swing)-b)/(a*math.sin(swing)))
+	AB = b*math.cos(alpha)
+	CD = forward_projection*math.sin(alpha)
+	error = desired_distance - (AB + CD) 
+	
+ 
 	msg = pid_input()	# An empty msg is created of the type pid_input
 	# this is the error that you want to send to the PID for steering correction.
 	msg.pid_error = error
@@ -50,5 +69,5 @@ if __name__ == '__main__':
 	print("Hokuyo LIDAR node started")
 	rospy.init_node('dist_finder',anonymous = True)
 	# TODO: Make sure you are subscribing to the correct car_x/scan topic on your racecar
-	rospy.Subscriber("/car_X/scan",LaserScan,callback)
+	rospy.Subscriber("/car_3/scan",LaserScan,callback)
 	rospy.spin()

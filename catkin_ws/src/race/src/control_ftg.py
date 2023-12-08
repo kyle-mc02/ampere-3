@@ -42,26 +42,25 @@ def control(data):
 
 	## Your PID code goes here
 	#TODO: Use kp, ki & kd to implement a PID controller 
-	angle = (kp * data.pid_error) + (ki * (sum(errors)/len(errors))) + (-kd * (prev_error - data.pid_error))
+        angle = (kp * data.pid_error) + (ki * (sum(errors)/len(errors))) + (-kd * (prev_error - data.pid_error))
 	errors.append(data.pid_error)
     # 1. Scale the error
 	# 2. Apply the PID equation on error to compute steering
 
 	# An empty AckermannDrive message is created. You will populate the steering_angle and the speed fields.
 	command = AckermannDrive()
-
-	print("pid_controller_out: ", angle)
-	if angle < -100 :
-		angle = -100
-	elif angle > 100 :
-		angle = 100
+        
+        if angle < -100 :
+            angle = -100
+        elif angle > 100 :
+            angle = 100
 	command.steering_angle = (angle) if not math.isnan(angle) else 0	
 	print('desired angle {}'.format(command.steering_angle))
 
-	if vel_input < 0 :
-		vel_input = 0
-	elif vel_input > 100 :
-		vel_input = 100
+        if vel_input < 0 :
+            vel_input = 0
+        elif vel_input > 100 :
+            vel_input = 100
     # command.speed = vel_input * (2-abs(data.pid_error))
 	# if command.steering_angle > 60 or command.steering_angle < -60:
 	# 	command.speed = 10
@@ -70,14 +69,7 @@ def control(data):
 	# else:
 	#command.speed = vel_input / (1 + 0.5*math.sqrt(abs(command.steering_angle)))
 		# command.speed = vel_input - (vel_input/120)*abs(command.steering_angle)  #/(1+abs(command.steering_angle))
-	# command.speed = min(max(vel_input * (1.4*data.pid_vel / (1 + abs(data.pid_error)**3)), 0.1), vel_input)
-	command.speed = vel_input * (1.4 / (1 + abs(data.pid_error)))
-	# command.speed = min(max(vel_input * (data.pid_vel/ (1 + abs(data.pid_error)**2)), 0.1), vel_input)
-	# speed = vel_input * (data.pid_vel)/(1.5+abs(data.pid_error)) * 2
-	# if 0.1 <= speed <= vel_input:
-	# 	command.speed = speed
-	# else:
-	# 	command.speed = vel_input//2
+	command.speed = vel_input * (1.4 / (1 + abs(data.pid_error)))#**2)
 	# command.speed = (-vel_input/2) * abs(data.pid_error) + vel_input
 	# print('PID VEL: {}'.format(data.pid_vel))
 	# if math.isnan(data.pid_vel) or data.pid_vel==0:

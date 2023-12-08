@@ -15,7 +15,7 @@ pub = rospy.Publisher('error', pid_input, queue_size=10)
 
 
 def find_widest_heading(data):
-	ranges = np.array(data)
+	ranges = np.array(data.ranges)
 	disparities = np.diff(ranges)
 	
 	last_gap_index = 0
@@ -75,10 +75,9 @@ def callback(data):
 	# msg.pid_error = relative_heading
 	# msg.pid_vel = vel		# velocity error can also be sent.
 	# pub.publish(msg)
-	ranges = data.ranges
-	ranges = ranges[90:-90]
-	middle_index = len(ranges) // 2
-	gap_ind = find_widest_heading(ranges)
+
+	middle_index = len(data.ranges) // 2
+	gap_ind = find_widest_heading(data)
 	# print("{}: data.ranges".format(data.ranges))
 	# print("{}: ranges len".format(len(data.ranges)))
 
