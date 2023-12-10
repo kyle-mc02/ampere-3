@@ -29,6 +29,7 @@ polygon_pub         = rospy.Publisher('/{}/purepursuit_control/visualize'.format
 global wp_seq
 global curr_polygon
 global extended_ranges
+global ftg_drive
 
 # TODO: Set the distance between points in LIDAR scan and path which is picked up as an obstacle on the path...
 INTERSECTION_THRESHOLD = 0.1
@@ -36,6 +37,11 @@ INTERSECTION_THRESHOLD = 0.1
 wp_seq          = 0
 control_polygon = PolygonStamped()
 extended_ranges = np.array()
+ftg_drive = AckermannDrive()
+
+def get_ftg(data):
+    global ftg_drive
+    ftg_drive = data
 
 def get_extended_ranges(data):
     global extended_ranges
@@ -126,8 +132,8 @@ def purepursuit_control_node(data):
         #
         # TODO: NEED TO USE EITHER FTG OR SELECT AN NEW PATH ....
         #
-        
-        pass
+        command_pub.publish(ftg_drive)
+        return
 
     pose_x = plan[base_proj_ind][0]
     pose_y = plan[base_proj_ind][1]
@@ -227,14 +233,13 @@ if __name__ == '__main__':
     try:
 
         rospy.init_node('pure_pursuit', anonymous = True)
-        
         if not plan:
             rospy.loginfo('obtaining trajectory')
             construct_path()
-
         # This node subsribes to the pose estimate provided by the Particle Filter. 
         # The message type of that pose message is PoseStamped which belongs to the geometry_msgs ROS package.
         rospy.Subscriber('/{}/particle_filter/viz/inferred_pose'.format(car_name), PoseStamped, purepursuit_control_node)
+        rospy.Subscriber('ftg', AckermannDrive, get_ftg)
         rospy.spin()
 
     except rospy.ROSInterruptException:
