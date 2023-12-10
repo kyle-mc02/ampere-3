@@ -47,6 +47,7 @@ def get_extended_ranges(data):
     
     extended_ranges = np.append(xc*ranges, yc*ranges, axis=1)
 
+
 def construct_path():
     # Function to construct the path from a CSV file
     # TODO: Modify this path to match the folder where the csv file containing the path is located.
@@ -125,6 +126,7 @@ def purepursuit_control_node(data):
         #
         # TODO: NEED TO USE EITHER FTG OR SELECT AN NEW PATH ....
         #
+        
         pass
 
     pose_x = plan[base_proj_ind][0]
@@ -225,6 +227,7 @@ if __name__ == '__main__':
     try:
 
         rospy.init_node('pure_pursuit', anonymous = True)
+        
         if not plan:
             rospy.loginfo('obtaining trajectory')
             construct_path()
