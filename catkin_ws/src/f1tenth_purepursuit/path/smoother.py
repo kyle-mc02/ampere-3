@@ -2,6 +2,8 @@ import pandas as pd
 import sys
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
+from scipy.ndimage import gaussian_filter
+from scipy.signal import medfilt2d
 #from scipy.ndimage import gaussian_laplace
 
 df = pd.read_csv("%s.csv"%(sys.argv[1]), header=None)
@@ -14,8 +16,10 @@ xy = df.loc[:, 0:1]
 #print(x)
 #print(y)
 
-xp, yp = gaussian_filter1d(x, int(sys.argv[2])), gaussian_filter1d(y, int(sys.argv[2]))
-#lp = gaussian_laplace(xy, 3)
+sigma = int(sys.argv[2])
+xp, yp = gaussian_filter1d(x, sigma), gaussian_filter1d(y, sigma)
+#lp = gaussian_filter(xy, sigma)
+#lp = medfilt2d(xy)
 #print(lp)
 #xp, yp = lp[:, 0], lp[:, 1]
 #print(xp, yp)
