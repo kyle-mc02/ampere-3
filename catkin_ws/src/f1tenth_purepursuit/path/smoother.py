@@ -16,10 +16,10 @@ plt.plot(x, y)
 plt.plot(xp, yp)
 plt.show()
 
-# Drop that column
-df.drop(0, axis = 1, inplace = True)
-df.drop(1, axis = 1, inplace = True)
+# replace columns
 df[0] = xp
 df[1] = yp
+
+print(df)
 
 df.to_csv("%s_smooth.csv"%(sys.argv[1]), header=False)
